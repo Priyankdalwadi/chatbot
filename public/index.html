@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Grok Chatbot</title>
+</head>
+<body>
+  <h1>Chat with Grok AI</h1>
+  <input type="text" id="input" placeholder="Type your message" />
+  <button onclick="sendMessage()">Send</button>
+  <p id="response"></p>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById('input').value;
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ message: input })
+      });
+      const data = await res.json();
+      document.getElementById('response').innerText = data.reply;
+    }
+  </script>
+</body>
+</html>
