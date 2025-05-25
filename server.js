@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -11,41 +10,37 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-const GROK_API_KEY = process.env.GROK_API_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// Dummy example POST endpoint to call Grok API
 app.post('/chat', async (req, res) => {
   const { message } = req.body;
 
   try {
-    // Replace URL and payload below with actual Grok API details
-    const response = await fetch('https://api.x.ai/v1/chat/completions ', {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROK_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'grok-3',   // example model name
-        messages: [{ role: 'user', content: message }],
+        contents: [{ parts: [{ text: message }] }]
       }),
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      return res.status(500).json({ reply: `API Error: ${errText}` });
-    }
-
     const data = await response.json();
-    // Assuming Grok's API returns a similar structure to OpenAI
-    const reply = data.choices?.[0]?.message?.content || "No reply from API.";
-    res.json({ reply });
+
+    if (data && data.candidates && data.candidates.length > 0) {
+      const reply = data.candidates[0].content.parts[0].text;
+      res.json({ reply });
+    } else {
+      res.status(500).json({ reply: "No response from Gemini API" });
+    }
   } catch (error) {
-    console.error("Server error:", error);
+    console.error("Gemini API Error:", error);
     res.status(500).json({ reply: "Server error" });
   }
 });
 
-app.listen(5000, () => {
-  console.log("Server running at http://localhost:5000");
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
